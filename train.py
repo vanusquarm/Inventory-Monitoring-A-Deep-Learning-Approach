@@ -164,10 +164,10 @@ def main(args):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
-    parser.add_argument('--learning_rate', type=float)
+    parser.add_argument('--lr', type=float)
     parser.add_argument('--batch_size', type=int)
     parser.add_argument('--epochs', type=int)
-    parser.add_argument('--data', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument('--data', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--output_dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
     
