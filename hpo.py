@@ -1,62 +1,50 @@
-
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 import torchvision
-import torchvision.models as models
-import torchvision.transforms as transforms
-from torchvision import datasets
+from torchvision import datasets, models, transforms
+import time # for measuring time for testing, remove for students
 
-
-import copy
-import argparse
-import os
-import logging
-import sys
-from tqdm import tqdm
-from PIL import ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
-logger=logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-
-def test(model, test_loader, criterion):
+def test(model, test_loader, criterion, device):
+    print("Testing Model on Whole Testing Dataset")
     model.eval()
     running_loss=0
     running_corrects=0
     
     for inputs, labels in test_loader:
+        inputs=inputs.to(device)
+        labels=labels.to(device)
         outputs=model(inputs)
         loss=criterion(outputs, labels)
         _, preds = torch.max(outputs, 1)
         running_loss += loss.item() * inputs.size(0)
-        running_corrects += torch.sum(preds == labels.data)
+        running_corrects += torch.sum(preds == labels.data).item()
 
-    total_loss = running_loss // len(test_loader)
-    total_acc = running_corrects.double() // len(test_loader)
+    total_loss = running_loss / len(test_loader.dataset)
+    total_acc = running_corrects/ len(test_loader.dataset)
+    print(f"Testing Accuracy: {100*total_acc}, Testing Loss: {total_loss}")
     
-    logger.info(f"Testing Loss: {total_loss}")
-    logger.info(f"Testing Accuracy: {total_acc}")
-
-def train(model, train_loader, validation_loader, criterion, optimizer , eps):
-    epochs=eps
+def train(model, train_loader, validation_loader, criterion, optimizer, device):
+    epochs=2
     best_loss=1e6
     image_dataset={'train':train_loader, 'valid':validation_loader}
     loss_counter=0
     
     for epoch in range(epochs):
-        logger.info(f"Epoch: {epoch}")
         for phase in ['train', 'valid']:
+            print(f"Epoch {epoch}, Phase {phase}")
             if phase=='train':
                 model.train()
             else:
                 model.eval()
             running_loss = 0.0
             running_corrects = 0
+            running_samples=0
 
-            for inputs, labels in image_dataset[phase]:
+            for step, (inputs, labels) in enumerate(image_dataset[phase]):
+                inputs=inputs.to(device)
+                labels=labels.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
 
@@ -67,10 +55,28 @@ def train(model, train_loader, validation_loader, criterion, optimizer , eps):
 
                 _, preds = torch.max(outputs, 1)
                 running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                running_corrects += torch.sum(preds == labels.data).item()
+                running_samples+=len(inputs)
+                if running_samples % 2000  == 0:
+                    accuracy = running_corrects/running_samples
+                    print("Images [{}/{} ({:.0f}%)] Loss: {:.2f} Accuracy: {}/{} ({:.2f}%) Time: {}".format(
+                            running_samples,
+                            len(image_dataset[phase].dataset),
+                            100.0 * (running_samples / len(image_dataset[phase].dataset)),
+                            loss.item(),
+                            running_corrects,
+                            running_samples,
+                            100.0*accuracy,
+                            time.asctime() # for measuring time for testing, remove for students and in the formatting
+                        )
+                    )
+                
+                #NOTE: Comment lines below to train and test on whole dataset
+                if running_samples>(0.2*len(image_dataset[phase].dataset)):
+                    break
 
-            epoch_loss = running_loss // len(image_dataset[phase])
-            epoch_acc = running_corrects // len(image_dataset[phase])
+            epoch_loss = running_loss / running_samples
+            epoch_acc = running_corrects / running_samples
             
             if phase=='valid':
                 if epoch_loss<best_loss:
@@ -78,33 +84,27 @@ def train(model, train_loader, validation_loader, criterion, optimizer , eps):
                 else:
                     loss_counter+=1
 
-
-            logger.info('{} loss: {:.4f}, acc: {:.4f}, best loss: {:.4f}'.format(phase,
-                                                                                 epoch_loss,
-                                                                                 epoch_acc,
-                                                                                 best_loss))
         if loss_counter==1:
             break
-        if epoch==0:
-            break
     return model
-    
-def net():
-    model = models.resnet50(pretrained=True)
 
-    for param in model.parameters():
-        param.requires_grad = False   
+def create_model():
+    model = models.resnet50(pretrained=False)
 
+#     for param in model.parameters():
+#         param.requires_grad = False   
+
+    num_features=model.fc.in_features
     model.fc = nn.Sequential(
-                   nn.Linear(2048, 128),
+                   nn.Linear(num_features, 32),
                    nn.ReLU(inplace=True),
-                   nn.Linear(128, 5))
+                   nn.Linear(32,5)
+    )
     return model
 
-def create_data_loaders(data, batch_size):
-
-    print(data)
-    
+def create_data_loaders(data, batch_size, test_batch_size):
+    train_data_path = os.path.join(data, 'train')
+    test_data_path = os.path.join(data, 'test')
 
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop((224, 224)),
@@ -116,54 +116,46 @@ def create_data_loaders(data, batch_size):
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         ])
-
     
-    dataset = datasets.ImageFolder(data, transform=test_transform)    
-    lengths = [5221, 2611, 2609]
+    trainset = torchvision.datasets.ImageFolder(root=train_data_path, transform=train_transform)
+    testset = torchvision.datasets.ImageFolder(root=test_data_path, transform=test_transform)
     
-    train_set, test_set , valid_set = torch.utils.data.random_split(dataset, lengths)
-    
-    
-    trainDataloader = torch.utils.data.DataLoader(train_set, batch_size=32, shuffle=True, num_workers=2)
-    
-    testDataloader = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False, num_workers=2)
-    
-    validDataloader = torch.utils.data.DataLoader(valid_set, batch_size=32, shuffle=False, num_workers=2)
-    
-    
-    
-    return trainDataloader, testDataloader , validDataloader
+    return (
+        torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True),
+        torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False))
 
 def main(args):
-    logger.info(f'Hyperparameters are LR: {args.learning_rate}, Batch Size: {args.batch_size}')
-    logger.info(f'Data Paths: {args.data}')
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Running on Device {device}")
     
-    train_loader, test_loader, validation_loader=create_data_loaders(args.data, args.batch_size)
-    model=net()
-    
-    criterion = nn.CrossEntropyLoss(ignore_index=133)
-    eps = args.epochs
-    optimizer = optim.Adam(model.fc.parameters(), lr=args.learning_rate)
-    
-    logger.info("Starting Model Training")
-    model=train(model, train_loader, validation_loader, criterion, optimizer , eps)
-    
-    logger.info("Testing Model")
-    test(model, test_loader, criterion)
-    
-    logger.info("Saving Model")
-    torch.save(model.cpu().state_dict(), os.path.join(args.model_dir, "model.pth"))
+    model=create_model()
+    model=model.to(device)
 
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
+    train_loader, test_loader = create_data_loaders(args.data, args.batch_size, args.test_batch_size)
+
+    train(model, trainloader, testloader, criterion, optimizer, device)
+
+    test(model, testloader, criterion, device)
+    
+    
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
-    parser.add_argument('--learning_rate', type=float)
-    parser.add_argument('--batch_size', type=int)
-    parser.add_argument('--epochs', type=int)
-    parser.add_argument('--data', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+
+    parser.add_argument("--batch-size", type=int, default=1000, metavar="N", help="input batch size for training (default: 1000)")
+    parser.add_argument("--test-batch-size", type=int, default=256, metavar="N", help="input batch size for testing (default: 256)")
+    parser.add_argument("--epochs", type=int, default=14, metavar="N", help="number of epochs to train (default: 2)")
+    parser.add_argument("--lr", type=float, default=0.001, metavar="LR", help="learning rate (default: 0.001)")
+    parser.add_argument("--momentum", type=float, default=0.5, metavar="M", help="SGD momentum (default: 0.5)")
+    parser.add_argument('--data', type=str, default=os.environ["SM_CHANNEL_TRAIN"])
     parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--output_dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
     
     args=parser.parse_args()
-    print(args)
+    
+    logging.info(f"Learning Rate: {args.lr}")
+    logging.info(f"Batch Size: {args.batch_size}")
+    logging.info(f"Test Batch Size: {args.test_batch_size}")
+    logging.info(f"Epochs: {args.epochs}")
     
     main(args)
