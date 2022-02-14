@@ -4,7 +4,14 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import torchvision
 from torchvision import datasets, models, transforms
+import logging
+import sys
+import os
 import time # for measuring time for testing, remove for students
+
+logger=logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 def test(model, test_loader, criterion, device):
     print("Testing Model on Whole Testing Dataset")
@@ -144,7 +151,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
 
     parser.add_argument("--batch-size", type=int, default=1000, metavar="N", help="input batch size for training (default: 1000)")
-    parser.add_argument("--test-batch-size", type=int, default=256, metavar="N", help="input batch size for testing (default: 256)")
+    parser.add_argument("--test-batch-size", type=int, default=64, metavar="N", help="input batch size for testing (default: 64)")
     parser.add_argument("--epochs", type=int, default=14, metavar="N", help="number of epochs to train (default: 2)")
     parser.add_argument("--lr", type=float, default=0.001, metavar="LR", help="learning rate (default: 0.001)")
     parser.add_argument("--momentum", type=float, default=0.5, metavar="M", help="SGD momentum (default: 0.5)")
@@ -155,7 +162,6 @@ if __name__=='__main__':
     
     logging.info(f"Learning Rate: {args.lr}")
     logging.info(f"Batch Size: {args.batch_size}")
-    logging.info(f"Test Batch Size: {args.test_batch_size}")
     logging.info(f"Epochs: {args.epochs}")
     
     main(args)
