@@ -4,7 +4,9 @@ A custom resnet-50 model is built by overlaying the well-known CNN model archite
 We again profile the model's performance with respect to cpu, gpu, io and memory utilization during training. We also run the training with a higher hyperparameter ranges and then select the best hyperparameters to retrain our model. 
 
 ## Project Set Up and Installation
-The project repository is cloned from the provided link to the udacity's github repo (deep-learning-topics-within-computer-vision-nlp-project-starter)
+- AWS Sagemaker is an integrated service for machine learning model training, hyperparameter tuning, debugging, and deployment purposes and this will be used to train the deep learning model 
+- S3 will be used for data storage and training model storage 
+- Endpoint services available in AWS Sagemaker is used for model inference. Batch tranform can also be used on inference on batch test-set.
 
 ## Dataset
 - Data can be downloaded from Amazon Open Data website https://registry.opendata.aws/amazon-bin-imagery/
