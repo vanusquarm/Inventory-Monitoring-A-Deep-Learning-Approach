@@ -6,6 +6,7 @@ import torchvision.models as models
 from torchvision import datasets, transforms
 import argparse
 import smdebug.pytorch as smd
+import custmodel
 
 # Some images fail to load...
 from PIL import ImageFile
@@ -48,7 +49,7 @@ def train(model, train_loader, criterion, optimizer, hook):
 
 def net():
     model = models.resnet50(pretrained=False)
-
+#     model = custmodel.custom_resnet(models.resnet50())
 #     for param in model.parameters():
 #         param.requires_grad = False
 
@@ -85,7 +86,7 @@ def create_data_loaders(data_train, data_test, batch_size):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch-size", type=int, default=1000, metavar="N", help="input batch size for training (default: 1000)")
+    parser.add_argument("--batch-size", type=int, default=1024, metavar="N", help="input batch size for training (default: 1024)")
     parser.add_argument("--test-batch-size", type=int, default=64, metavar="N", help="input batch size for testing (default: 64)")
     parser.add_argument("--epochs", type=int, default=14, metavar="N", help="number of epochs to train (default: 14)")
     parser.add_argument("--lr", type=float, default=1.0, metavar="LR", help="learning rate (default: 1.0)")
