@@ -7,11 +7,9 @@ We again profile the model's performance with respect to cpu, gpu, io and memory
 The project repository is cloned from the provided link to the udacity's github repo (deep-learning-topics-within-computer-vision-nlp-project-starter)
 
 ## Dataset
-• Data can be downloaded from Amazon Open Data website https://registry.opendata.aws/amazon-bin-imagery/
-• Data is captured by Amazon in their Fulfilment centre and has around 50000 images
-• License
-Creative Commons Attribution-NonCommercial-ShareAlike 3.0 United States (CC BY-NC-SA 3.0 US) https://creativecommons.org/licenses/by-nc-sa/3.0/us/
-• Images are located in the bin-images directory, and metadata for each image is located in the metadata directory. Images and their associated metadata share simple numerical unique identifiers.
+- Data can be downloaded from Amazon Open Data website https://registry.opendata.aws/amazon-bin-imagery/
+- Data is captured by Amazon in their Fulfilment centre and has around 50000 images
+- Images are located in the bin-images directory, and metadata for each image is located in the metadata directory. Images and their associated metadata share simple numerical unique identifiers.
 Inputs
 There are two set of inputs for the model training
 1. Images for the model, which is available in the source as JPEG file
