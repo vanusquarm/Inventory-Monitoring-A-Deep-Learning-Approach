@@ -10,7 +10,7 @@ The project repository is cloned from the provided link to the udacity's github 
 - Data can be downloaded from Amazon Open Data website https://registry.opendata.aws/amazon-bin-imagery/
 - Data is captured by Amazon in their Fulfilment centre and has around 50000 images
 - Images are located in the bin-images directory, and metadata for each image is located in the metadata directory. Images and their associated metadata share simple numerical unique identifiers.
-Inputs
+### Inputs
 There are two set of inputs for the model training
 1. Images for the model, which is available in the source as JPEG file
 Example
