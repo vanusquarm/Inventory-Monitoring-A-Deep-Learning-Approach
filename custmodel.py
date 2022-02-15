@@ -44,7 +44,6 @@ class custom_resnet(nn.Module):
     x2 = x2.view(x2.size(0), -1)
     
     concat = torch.cat([x1,x2],1)
-
     p = self.classifier(concat)
     return p
 
@@ -74,6 +73,5 @@ class custom_vgg(nn.Module):
     x2 = x2.view(x2.size(0), -1)
     
     concat = torch.cat([x1,x2],1)
-
     p = self.classifier(concat)
     return p
