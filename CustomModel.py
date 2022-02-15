@@ -12,7 +12,7 @@ class custom_resnet(nn.Module):
       nn.Dropout(),
       nn.Linear(4096, 4096),
       nn.ReLU(inplace=True),
-      nn.Linear(4096, 1),
+      nn.Linear(4096, 5),
       nn.Sigmoid()
     )
 
