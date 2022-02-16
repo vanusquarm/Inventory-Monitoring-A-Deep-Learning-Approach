@@ -114,15 +114,15 @@ def create_data_loaders(data, batch_size, test_batch_size):
     test_data_path = os.path.join(data, 'test')
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop((224, 224)),
-        transforms.RandomHorizontalFlip(),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.Resize(224),
         transforms.ToTensor(),
-        ])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
     test_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize(224),
         transforms.ToTensor(),
-        ])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     
     trainset = torchvision.datasets.ImageFolder(root=train_data_path, transform=train_transform)
     testset = torchvision.datasets.ImageFolder(root=test_data_path, transform=test_transform)
