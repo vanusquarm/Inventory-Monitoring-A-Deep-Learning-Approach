@@ -64,19 +64,19 @@ def net():
 
 
 def create_data_loaders(data_train, data_test, batch_size):
-    train_transforms = transforms.Compose([
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.Resize(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    train_transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.Resize(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
-    test_transforms = transforms.Compose([
-    transforms.Resize(224),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    test_transform = transforms.Compose([
+        transforms.Resize(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     
-    trainset = datasets.ImageFolder(root=data_train, transform=train_transforms)
-    testset = datasets.ImageFolder(root=data_test, transform=test_transforms)
+    trainset = datasets.ImageFolder(root=data_train, transform=train_transform)
+    testset = datasets.ImageFolder(root=data_test, transform=test_transform)
     
     return (
         torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True),
